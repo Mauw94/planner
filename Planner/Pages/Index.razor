@@ -1,0 +1,94 @@
+﻿@page "/"
+@using System.Linq;
+@using Data.FileUpload;
+@inject IFileUpload fileUpload;
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<h3>Select a MP3 file to start playing!</h3>
+
+<InputFile OnChange="HandleFileSelected" />
+
+<h3>Uploaded file data: </h3>
+@if (file != null)
+{
+    <p>Name: @file.Name</p>
+    <p>Size in bytes: @file.Size</p>
+    <p>Last modified date: @file.LastModified.ToShortDateString()</p>
+    <p>Content type (not always supplied by the browser): @file.Type</p>
+}
+<h3>Play your own AUDIO here!</h3>
+
+<h5>Selected file: @fileName</h5>
+
+@if (filesList != null && filesList.Count > 0)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var file in filesList)
+            {
+                <tr @onclick="@(() => SetSelectedFile(file))">
+                    <td>@file</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div class="card">
+    <div class="card-header">
+        <button @onclick=@(()=>hidden=!hidden)>@(hidden ? "Play" : "Stop")</button>
+
+    </div>
+    <div class="card-body">
+        @if (!hidden)
+        {
+            <audio autoplay controls><source src="/music/@fileName" /></audio>
+        }
+        else
+        {
+            <audio controls muted><source src="/music/@fileName" /></audio>
+        }
+    </div>
+</div>
+
+
+@code {
+    bool hidden = true;
+    string fileName = "";
+    IFileListEntry file;
+    List<string> filesList = new List<string>();
+    string path = $"{Directory.GetCurrentDirectory()}{@"\wwwroot\music"}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var files = Directory.GetFiles(path);
+        foreach (var file in files)
+        {
+            filesList.Add(Path.GetFileName(file));
+        }
+    }
+
+    async Task HandleFileSelected(IFileListEntry[] files)
+    {
+        file = files.FirstOrDefault();
+
+        if (file != null)
+        {
+            await fileUpload.Upload(file);
+            filesList.Add(file.Name);
+        }
+    }
+
+    public void SetSelectedFile(string file)
+    {
+        fileName = file;
+    }
+}

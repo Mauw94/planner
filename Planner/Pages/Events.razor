@@ -1,0 +1,48 @@
+﻿@page "/events"
+
+@using Planner.Data.Event
+@inject EventService EventService
+
+<h1>Events</h1>
+
+<p>This component demonstrates fetching data from a service.</p>
+
+@if (events == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var e in events)
+            {
+                <tr>
+                    <td>@e.Id</td>
+                    <td>@e.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<EventDto> events;
+
+    protected override async Task OnInitializedAsync()
+    {
+        events = await EventService.FetchEvents();
+        foreach (var e in events)
+        {
+            Console.WriteLine(e.Description);
+        }
+    }
+
+
+}
